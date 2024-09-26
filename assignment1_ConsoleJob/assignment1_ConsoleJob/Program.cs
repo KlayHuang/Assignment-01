@@ -1,5 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using assignment1_ConsoleJob.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using System.Collections;
+using System.Security.Cryptography;
 
 namespace assignment1_ConsoleJob
 {
@@ -7,24 +11,29 @@ namespace assignment1_ConsoleJob
     {
         static void Main(string[] args)
         {
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+
+            var serviceProvider = services.BuildServiceProvider();
+            var logger = serviceProvider.GetRequiredService<ILogger>();
+            var fileService = serviceProvider.GetRequiredService<IFileService>();
+            var configService = serviceProvider.GetRequiredService<IConfigurationService>();
+
             try
             {
-                var config = new ConfigurationBuilder()
-                    .AddYamlFile("SerilogConfig.yml")
-                    .AddYamlFile("SysConfig.yml")
-                    .Build();
-
-                Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(config)
-                .CreateLogger();
-
-                string sourceDirectory = config["SourceDirectory"]!;
-                string destinationDirectory = config["DestinationDirectory"]!;
-                Log.Information($"來源資料夾: {sourceDirectory}, 目的資料夾: {destinationDirectory}");
+                string sourceDirectory = configService.GetSourceDirectory();
+                string destinationDirectory = configService.GetDestinationDirectory();
+                logger.Information($"來源資料夾: {sourceDirectory}, 目的資料夾: {destinationDirectory}");
 
                 if (!Directory.Exists(sourceDirectory))
                 {
-                    Log.Error($"來源資料夾不存在!!");
+                    logger.Error($"來源資料夾不存在!!");
+                    return;
+                }
+
+                if (IsSubDirectory(sourceDirectory, destinationDirectory))
+                {
+                    logger.Error("路徑異常: 目的資料夾是來源資料夾的子資料夾!");
                     return;
                 }
 
@@ -33,11 +42,11 @@ namespace assignment1_ConsoleJob
                     Directory.CreateDirectory(destinationDirectory);
                 }
 
-                MoveFiles(sourceDirectory, destinationDirectory);
+                fileService.MoveFiles(sourceDirectory, destinationDirectory);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "移動檔案時發生錯誤");
+                logger.Error(ex, "移動檔案時發生錯誤");
             }
             finally
             {
@@ -45,35 +54,29 @@ namespace assignment1_ConsoleJob
             }
         }
 
-        static void MoveFiles(string sourceDirectory, string destinationDirectory)
+        private static void ConfigureServices(IServiceCollection services)
         {
-            foreach (var file in Directory.GetFiles(sourceDirectory))
-            {
-                string fileName = Path.GetFileName(file);
-                string destFile = Path.Combine(destinationDirectory, fileName);
+            var config = new ConfigurationBuilder()
+                .AddYamlFile("Configurations/SerilogConfig.yml")
+                .AddYamlFile("Configurations/SysConfig.yml")
+                .Build();
 
-                File.Copy(file, destFile, true);
-                Log.Information($"{fileName} 複製到 {destinationDirectory} ");
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(config)
+                .CreateLogger();
 
-                File.Delete(file);
-                Log.Information($"來源檔案刪除: {fileName}");
-            }
+            services.AddSingleton<ILogger>(Log.Logger);
+            services.AddSingleton<IConfiguration>(config);
+            services.AddSingleton<IConfigurationService, ConfigurationService>();
+            services.AddSingleton<IFileService, FileService>();
+        }
 
-            foreach (var subDirectory in Directory.GetDirectories(sourceDirectory))
-            {
-                string subDirectoryName = Path.GetFileName(subDirectory);
-                string destSubDirectory = Path.Combine(destinationDirectory, subDirectoryName);
+        private static bool IsSubDirectory(string parentDirectory, string childDirectory)
+        {
+            string parentPath = Path.GetFullPath(parentDirectory);
+            string childPath = Path.GetFullPath(childDirectory);
 
-                if (!Directory.Exists(destSubDirectory))
-                {
-                    Directory.CreateDirectory(destSubDirectory);
-                }
-
-                MoveFiles(subDirectory, destSubDirectory);
-
-                Directory.Delete(subDirectory, true);
-                Log.Information($"資料夾刪除: {subDirectory}");
-            }
+            return childPath.StartsWith(parentPath, StringComparison.OrdinalIgnoreCase);
         }
 
 
