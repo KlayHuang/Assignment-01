@@ -18,12 +18,12 @@ namespace assignment1_ConsoleJob.Services
 
         public string GetSourceDirectory()
         {
-            return _configuration.GetValue<string>("SourceDirectory")!;
+            return _configuration.GetValue<string>("SourceDirectory") ?? string.Empty;
         }
 
         public string GetDestinationDirectory()
         {
-            return _configuration.GetValue<string>("DestinationDirectory")!;
+            return _configuration.GetValue<string>("DestinationDirectory") ?? string.Empty;
         }
     }
 }

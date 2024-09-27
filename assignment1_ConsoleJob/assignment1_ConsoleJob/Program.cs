@@ -23,30 +23,38 @@ namespace assignment1_ConsoleJob
             {
                 string sourceDirectory = configService.GetSourceDirectory();
                 string destinationDirectory = configService.GetDestinationDirectory();
-                logger.Information($"來源資料夾: {sourceDirectory}, 目的資料夾: {destinationDirectory}");
-
-                if (!Directory.Exists(sourceDirectory))
+                
+                if (string.IsNullOrEmpty(sourceDirectory))
                 {
-                    logger.Error($"來源資料夾不存在!!");
-                    return;
+                    do
+                    {
+                        logger.Error($"來源資料夾不存在!! 請輸入 [來源資料夾] 路徑:");
+                        sourceDirectory = Console.ReadLine()!;
+                    } 
+                    while (!Directory.Exists(sourceDirectory));
+                }
+
+                if (string.IsNullOrEmpty(destinationDirectory))
+                {
+                    do
+                    {
+                        logger.Error($"目的資料夾不存在!! 請輸入 [目的資料夾] 路徑:");
+                        destinationDirectory = Console.ReadLine()!;
+                    } while (!Directory.Exists(destinationDirectory));
                 }
 
                 if (IsSubDirectory(sourceDirectory, destinationDirectory))
                 {
-                    logger.Error("路徑異常: 目的資料夾是來源資料夾的子資料夾!");
+                    logger.Error("路徑異常: 目的資料夾是來源資料夾的子資料夾，終止程序!!");
                     return;
                 }
-
-                if (!Directory.Exists(destinationDirectory))
-                {
-                    Directory.CreateDirectory(destinationDirectory);
-                }
+                logger.Information($"來源資料夾: {sourceDirectory}, 目的資料夾: {destinationDirectory}");
 
                 fileService.MoveFiles(sourceDirectory, destinationDirectory);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "移動檔案時發生錯誤");
+                logger.Error(ex, "程式發生錯誤!!");
             }
             finally
             {
