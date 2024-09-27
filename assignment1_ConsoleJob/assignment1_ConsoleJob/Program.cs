@@ -24,7 +24,7 @@ namespace assignment1_ConsoleJob
                 string sourceDirectory = configService.GetSourceDirectory();
                 string destinationDirectory = configService.GetDestinationDirectory();
                 
-                if (string.IsNullOrEmpty(sourceDirectory))
+                if (string.IsNullOrEmpty(sourceDirectory) || !Directory.Exists(sourceDirectory))
                 {
                     do
                     {
@@ -34,7 +34,7 @@ namespace assignment1_ConsoleJob
                     while (!Directory.Exists(sourceDirectory));
                 }
 
-                if (string.IsNullOrEmpty(destinationDirectory))
+                if (string.IsNullOrEmpty(destinationDirectory) || !Directory.Exists(destinationDirectory))
                 {
                     do
                     {
