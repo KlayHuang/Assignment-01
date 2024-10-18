@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using assignment1_ConsoleJob.Interfaces;
 using Microsoft.Extensions.Configuration;
 
 namespace assignment1_ConsoleJob.Services

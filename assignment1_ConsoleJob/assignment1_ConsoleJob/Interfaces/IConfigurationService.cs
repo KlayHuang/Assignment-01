@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace assignment1_ConsoleJob.Services
+namespace assignment1_ConsoleJob.Interfaces
 {
     public interface IConfigurationService
     {

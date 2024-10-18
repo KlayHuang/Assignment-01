@@ -1,4 +1,5 @@
-﻿using assignment1_ConsoleJob.Services;
+﻿using assignment1_ConsoleJob.Interfaces;
+using assignment1_ConsoleJob.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
